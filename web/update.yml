@@ -21,7 +21,7 @@
         chdir: "{{ project_root_path }}"
         executable: /bin/bash
     - name: "Add config"
-      copy:
+      ansible.builtin.template:
         src: "config.j2"
         dest: "{{ project_root_path }}/config.json"
       tags: config
