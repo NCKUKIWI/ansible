@@ -1,0 +1,46 @@
+- name: Define mysql port and password.
+  set_fact:
+    mariadb_port: "{{ mariadb_port | default('3306') }}"
+    mariadb_root_password: "{{ mariadb_root_password | default('123456') }}"
+- name: Show mysql port and password.
+  debug:
+    msg: "mariadb_port: {{ mariadb_port }} mariadb_root_password: {{ mariadb_root_password }}"
+- name: Install software-properties-common
+  apt:
+    name: software-properties-common
+    update_cache: yes
+- name: Install python mysql
+  apt:
+    name: python3-mysqldb
+    update_cache: yes
+- name: Install mariadb
+  apt:
+    name: mariadb-server-10.3
+    update_cache: yes
+# 設定 root 密碼
+- name: Set root password
+  community.mysql.mysql_user:
+    login_host: 'localhost'
+    login_user: 'root'
+    login_password: ''
+    name: root
+    password: "{{ mariadb_root_password }}"
+    host: "%"
+    priv: '*.*:ALL,GRANT'
+    state: present
+    check_implicit_admin: true
+  ignore_errors: yes
+# 更新 my.cnf 設定
+- name: Updat my.cnf
+  template:
+    src: "{{ group_names[0] }}.j2"
+    dest: /etc/mysql/my.cnf
+    owner: mysql
+    group: mysql
+    mode: '0600'
+    backup: yes
+# 重啟 mariadb
+- name: Restart mariadb
+  ansible.builtin.service:
+    name: mariadb
+    state: restarted

@@ -1,0 +1,6 @@
+- name: Set authorized key taken from file
+  authorized_key:
+    user: root
+    state: present
+    exclusive: True
+    key: "publicKeys"

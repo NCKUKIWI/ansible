@@ -1,0 +1,32 @@
+---
+- hosts: "web"
+  tasks:
+    # 執行 git clone
+    - name: Git pull project
+      ansible.builtin.git:
+        repo: git@github.com:NCKUKIWI/KIWI.git
+        dest: "{{ project_root_path }}"
+        version: "new_web"
+        accept_hostkey: yes
+    # 執行 npm install
+    - name: Install packages based on package.json.
+      ansible.builtin.shell: "source /root/.nvm/nvm.sh && npm install"
+      args:
+        chdir: "{{ project_root_path }}"
+        executable: /bin/bash
+    # 執行 gulp
+    - name: Run gulp command.
+      ansible.builtin.shell: "source /root/.nvm/nvm.sh && gulp compile"
+      args:
+        chdir: "{{ project_root_path }}"
+        executable: /bin/bash
+    - name: "Add config"
+      copy:
+        src: "config.j2"
+        dest: "{{ project_root_path }}/config.json"
+      tags: config
+    # 執行 pm2 restart
+    - name: Restart server
+      ansible.builtin.shell: "source /root/.nvm/nvm.sh && pm2 restart {{ project_root_path }}/app.js"
+      args:
+        executable: /bin/bash

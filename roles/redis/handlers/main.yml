@@ -1,0 +1,7 @@
+# handlers file for fail2ban
+---
+- name: restart redis
+  ansible.builtin.service:
+    name: redis-server
+    state: restarted
+  when: service_default_state | default('started') == 'started'

@@ -1,0 +1,13 @@
+- name: Define nodejs version.
+  set_fact:
+    nodejs_version: "{{ nodejs_version | default('10') }}"
+# 下載 nvm
+- name: Install nvm
+  ansible.builtin.shell:
+    cmd: "wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash"
+- name: "Install nodejs {{ nodejs_version }}"
+  become: yes
+  become_user: root
+  ansible.builtin.shell: "source /root/.nvm/nvm.sh && nvm install {{ nodejs_version }}"
+  args:
+    executable: /bin/bash

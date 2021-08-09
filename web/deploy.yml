@@ -1,0 +1,60 @@
+---
+- hosts: "web"
+  vars_files:
+    - vars/main.yml
+  vars:
+    nodejs_version: "10.24.1"
+    project_root_path: "/root/nckuhub"
+  roles:
+    - role: hostname
+      vars:
+      hostname: "nckuhub"
+    - role: git
+    - role: ulimit
+    - role: timezone
+    - role: bash
+    - role: iptables
+      tags: iptables
+    - role: fail2ban
+    - role: nginx
+      tags: nginx
+    - role: nodejs
+    - role: redis
+      tags: redis
+    - role: mariadb
+      tags: mariadb
+  tasks:
+    # 執行 git clone
+    - name: Git pull project
+      ansible.builtin.git:
+        repo: git@github.com:NCKUKIWI/KIWI.git
+        dest: "{{ project_root_path }}"
+        version: "new_web"
+        accept_hostkey: yes
+    - name: Install packages based on package.json.
+      ansible.builtin.shell: "source /root/.nvm/nvm.sh && npm install"
+      args:
+        chdir: "{{ project_root_path }}"
+        executable: /bin/bash
+    - name: Install "pm2" node.js package globally.
+      ansible.builtin.shell: "source /root/.nvm/nvm.sh && npm install -g pm2"
+      args:
+        executable: /bin/bash
+    - name: Install "gulp" node.js package globally.
+      ansible.builtin.shell: "source /root/.nvm/nvm.sh && npm install -g gulp"
+      args:
+        executable: /bin/bash
+    - name: Run gulp command.
+      ansible.builtin.shell: "source /root/.nvm/nvm.sh && gulp compile"
+      args:
+        chdir: "{{ project_root_path }}"
+        executable: /bin/bash
+    - name: "Add config"
+      copy:
+        src: "config.j2"
+        dest: "{{ project_root_path }}/config.json"
+      tags: config
+    - name: Start server
+      ansible.builtin.shell: "source /root/.nvm/nvm.sh && pm2 start {{ project_root_path }}/app.js"
+      args:
+        executable: /bin/bash

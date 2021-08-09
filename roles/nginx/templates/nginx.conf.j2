@@ -1,0 +1,109 @@
+user {{ nginx_user }};
+worker_processes  {{ nginx_worker_processes }};
+
+error_log  /var/log/nginx/error.log warn;
+pid        /var/run/nginx.pid;
+worker_rlimit_nofile 100000;
+
+events {
+    worker_connections  {{ nginx_worker_connections | default('1024') }};
+    use epoll;
+}
+
+http {
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+
+    # set client body size to 2M #
+    client_max_body_size {{ nginx_client_max_body_size }};
+
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log  /var/log/nginx/access.log  main;
+
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+
+    keepalive_timeout  65;
+
+
+    dav_methods  PUT;
+    create_full_put_path   on;
+    dav_access             group:rw  all:r;
+
+    types_hash_max_size 2048;
+    # server_tokens off;
+
+    # server_names_hash_bucket_size 64;
+    # server_name_in_redirect off;
+
+    # ##
+    # # Logging Settings
+    # ##
+
+    # access_log /var/log/nginx/access.log;
+    error_log /var/log/nginx/error.log;
+
+    ##
+    # Gzip Settings
+    ##
+    gzip on;
+    gzip_disable "msie6";
+    gzip_min_length 1k;
+    gzip_types text/plain application/x-javascript text/css text/javascript application/x-httpd-php image/jpeg image/gif image/png;
+    gzip_comp_level 6;
+    gzip_proxied any;
+    gzip_buffers 16 8k;
+    # gzip_vary on;
+    # gzip_comp_level 6;
+    # gzip_buffers 16 8k;
+    # gzip_http_version 1.1;
+    # gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+
+    # Cloudflare
+    {% if nginx_open_cloudflair_polixy %}
+    real_ip_header     CF-Connecting-IP;
+    set_real_ip_from 103.21.244.0/22;
+    set_real_ip_from 103.22.200.0/22;
+    set_real_ip_from 103.31.4.0/22;
+    set_real_ip_from 108.162.192.0/18;
+    set_real_ip_from 131.0.72.0/22;
+    set_real_ip_from 141.101.64.0/18;
+    set_real_ip_from 162.158.0.0/15;
+    set_real_ip_from 172.64.0.0/13;
+    set_real_ip_from 173.245.48.0/20;
+    set_real_ip_from 188.114.96.0/20;
+    set_real_ip_from 190.93.240.0/20;
+    set_real_ip_from 197.234.240.0/22;
+    set_real_ip_from 198.41.128.0/17;
+    set_real_ip_from 104.16.0.0/13;
+    set_real_ip_from 104.24.0.0/14;
+    set_real_ip_from 2400:cb00::/32;
+    set_real_ip_from 2606:4700::/32;
+    set_real_ip_from 2803:f800::/32;
+    set_real_ip_from 2405:b500::/32;
+    set_real_ip_from 2405:8100::/32;
+    set_real_ip_from 2a06:98c0::/29;
+    set_real_ip_from 2c0f:f248::/32;
+    {% endif %}
+
+    # bot setting..
+    geo $isabot {
+        default 0;
+        #pchome
+        #google
+        # 66.249.73.197/24 1;
+    }
+    map $isabot $limited_ip_key {
+        0 '';
+        1 $binary_remote_addr;
+    }
+    limit_req_zone $limited_ip_key zone=isabot:5m rate=1r/s;
+    limit_req zone=isabot burst=100;
+
+    include /etc/nginx/conf.d/*.conf;
+    include /etc/nginx/sites-enabled/*;
+}

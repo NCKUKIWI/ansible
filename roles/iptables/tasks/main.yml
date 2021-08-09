@@ -1,0 +1,15 @@
+- name: Create iptables directory
+  file: path=/etc/iptables state=directory mode=0755
+
+- name: "Update configuration file with {{ group_names[0] }}.j2 - /etc/init.d/iptables.sh"
+  template:
+    src: "{{ group_names[0] }}.j2"
+    dest: /etc/init.d/iptables.sh
+    owner: root
+    group: root
+    mode: 0731
+  notify: restart iptables
+  tags:
+    - configuration
+    - iptables
+    - iptables-configuration

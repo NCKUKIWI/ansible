@@ -1,0 +1,48 @@
+#!/bin/bash
+
+if [ `whoami` = root ]
+then
+    # clear ipTables
+    iptables -F
+    iptables -X
+    iptables -t nat -F
+    iptables -t nat -X
+    iptables -t mangle -F
+    iptables -t mangle -X
+    iptables -P INPUT ACCEPT
+    iptables -P FORWARD ACCEPT
+    iptables -P OUTPUT ACCEPT
+
+    # start setting
+    iptables -A INPUT -i lo -j ACCEPT
+
+    # 127.0.0.1 accept local request 接受local主動丟出的封包
+    iptables -A INPUT -m state --state ESTABLISHED,RELATED,UNTRACKED -j ACCEPT
+
+    # 對TCP/UDP連接不启用追蹤，解决nf_contrack滿導致無法連接的問題
+    iptables -t raw -A PREROUTING -p tcp --dport 80 -j NOTRACK
+    iptables -t raw -A PREROUTING -p tcp --dport {{ mariadb_port }} -j NOTRACK
+    iptables -t raw -A PREROUTING -p tcp --dport {{ redis_port }} -j NOTRACK
+    iptables -t raw -A OUTPUT -p tcp --sport 80 -j NOTRACK
+    iptables -t raw -A OUTPUT -p tcp --sport {{ mariadb_port }} -j NOTRACK
+    iptables -t raw -A OUTPUT -p tcp --sport {{ redis_port }} -j NOTRACK
+
+    # allow ports
+    iptables -A INPUT -p tcp --dport ssh -j ACCEPT
+    iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+    iptables -A INPUT -p tcp --dport 80  -j ACCEPT
+    iptables -A INPUT -p tcp --dport {{ mariadb_port }} -j ACCEPT
+    iptables -A INPUT -p tcp --dport {{ redis_port }} -j ACCEPT
+    iptables -A INPUT -p icmp -j ACCEPT
+
+    # deny all input
+    iptables -P INPUT DROP
+
+    # accept all output
+    iptables -P OUTPUT ACCEPT
+
+    # show all settings
+    iptables -L
+else
+    echo "please use root"
+fi

@@ -1,0 +1,8 @@
+---
+# 先取得 servie 變數
+- name: Populate service facts
+  service_facts:
+
+- name: install datadog-agent
+  shell: DD_AGENT_MAJOR_VERSION=7 DD_API_KEY={{ DD_API_KEY | quote | mandatory }} DD_SITE="datadoghq.com" bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script.sh)"
+  when: "ansible_facts.services['datadog-agent'] is not defined"

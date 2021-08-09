@@ -1,0 +1,21 @@
+server {
+    listen 80;
+    server_name {{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }};
+    return 404;
+}
+
+server {
+    listen 80;
+    server_name nckuhub.com;
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+    }
+}
+
+server {
+    listen 80;
+    server_name bot.nckuhub.com;
+    location / {
+        proxy_pass http://192.168.192.139:3000;
+    }
+}

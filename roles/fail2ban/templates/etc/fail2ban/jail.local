@@ -1,0 +1,11 @@
+##To block the failed login attempts on the SSH server, use the below jail.
+
+[sshd]
+enabled = true
+port = ssh
+filter = sshd
+logpath = /var/log/auth.log
+maxretry = 5
+# 1 year
+bantime = 31536000
+ignoreip = 125.227.241.73

@@ -1,0 +1,30 @@
+- name: Define mysql port and password.
+  set_fact:
+    redis_port: "{{ redis_port | default('6379') }}"
+    redis_password: "{{ redis_password | default('123456') }}"
+- name: Show mysql port and password.
+  debug:
+    msg: "redis_port: {{ redis_port }} redis_password: {{ redis_password }}"
+# 安裝 redis
+- name: Install redis
+  apt:
+    name: "{{ redisVersion | default('redis-server=5:5.0.7-2') }}"
+    state: "present"
+    update_cache: true
+    cache_valid_time: "{{ apt_update_cache_valid_time | default(3600) }}"
+  tags:
+    - configuration
+    - redis
+    - redis-install
+- name: Update configuration file - /etc/redis/redis.conf
+  template:
+    src: "{{ ansible_play_name }}.j2"
+    dest: /etc/redis/redis.conf
+    owner: root
+    group: root
+    mode: 0755
+  notify: restart redis
+  tags:
+    - configuration
+    - redis
+    - redis-configuration

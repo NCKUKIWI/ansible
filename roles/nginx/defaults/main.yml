@@ -1,0 +1,9 @@
+---
+nginx_user: "root"
+nginx_worker_processes: 1
+nginx_client_max_body_size: "500M"
+nginx_open_cloudflair_polixy: false
+nginx:
+    # 有自訂的 fastcgi
+    has_custom_fastcgi: false
+    has_basic_auth: false

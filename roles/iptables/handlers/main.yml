@@ -1,0 +1,4 @@
+# 重啟 iptables
+---
+- name: restart iptables
+  command: sh /etc/init.d/iptables.sh

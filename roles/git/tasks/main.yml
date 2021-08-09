@@ -1,0 +1,25 @@
+- name: install git
+  apt:
+    name: "git"
+    state: "latest"
+    update_cache: true
+    cache_valid_time: "{{ apt_update_cache_valid_time | default(3600) }}"
+  tags:
+    - git
+    - git-install
+
+- name: Creates .ssh directory
+  file:
+    path: ~/.ssh
+    state: directory
+    mode: 0755
+
+- name: upload git private key file
+  template:
+    src: "deploy-keys/{{ group_names[0] }}.j2"
+    dest: ~/.ssh/id_rsa
+    owner: root
+    group: root
+    mode: 0600
+  tags:
+    - configuration

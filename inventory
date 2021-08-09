@@ -1,0 +1,7 @@
+[all:vars]
+ansible_user=root
+
+[web]
+172.105.217.49
+[web:vars]
+private_ip_address=192.168.150.81
