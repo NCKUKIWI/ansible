@@ -1,7 +1,6 @@
 ---
 - hosts: "web"
   tasks:
-    # 執行 git clone
     - name: Git pull project
       ansible.builtin.git:
         repo: git@github.com:NCKUKIWI/KIWI.git
@@ -27,6 +26,7 @@
       tags: config
     # 執行 pm2 restart
     - name: Restart server
-      ansible.builtin.shell: "source /root/.nvm/nvm.sh && pm2 restart {{ project_root_path }}/app.js"
+      ansible.builtin.shell: "source /root/.nvm/nvm.sh && pm2 restart app.js"
       args:
+        chdir: "{{ project_root_path }}"
         executable: /bin/bash
