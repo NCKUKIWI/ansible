@@ -55,6 +55,7 @@
         dest: "{{ project_root_path }}/config.json"
       tags: config
     - name: Start server
-      ansible.builtin.shell: "source /root/.nvm/nvm.sh && pm2 start {{ project_root_path }}/app.js"
+      ansible.builtin.shell: "source /root/.nvm/nvm.sh && pm2 start app.js"
       args:
+        chdir: "{{ project_root_path }}"
         executable: /bin/bash
